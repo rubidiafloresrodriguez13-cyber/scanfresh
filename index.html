@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+  <title>ScanFresh · Identificador de Frutas y Verduras</title>
+  <meta name="theme-color" content="#121212">
+  <meta name="description" content="Escáner móvil de frutas y verduras para punto de venta">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- ===== ENCABEZADO ===== -->
+    <header class="app-header">
+      <div class="app-header__brand">
+        <span class="app-header__logo" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C12 2 8 6.5 8 11.5C8 15.6 10.7 18.9 12 20.5C13.3 18.9 16 15.6 16 11.5C16 6.5 12 2 12 2Z" stroke="#00e676" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M12 2C12 2 13.6 4 13.6 6.2" stroke="#00e676" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <h1 class="app-header__title">ScanFresh</h1>
+      </div>
+      <div class="app-header__status" id="systemStatus">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">Cámara inactiva</span>
+      </div>
+    </header>
+
+    <!-- ===== VISOR DE CÁMARA ===== -->
+    <main class="app-main">
+      <section class="camera-viewer" aria-label="Visor de cámara para escaneo">
+        <div class="camera-frame" id="cameraFrame">
+
+          <video id="video" class="camera-frame__video" autoplay playsinline muted></video>
+          <img id="previewImage" class="camera-frame__video camera-frame__video--hidden" alt="Imagen de prueba cargada">
+          <canvas id="canvas" class="camera-frame__canvas" hidden></canvas>
+
+          <!-- Placeholder cuando no hay cámara ni imagen -->
+          <div class="camera-frame__placeholder" id="cameraPlaceholder">
+            <svg width="46" height="46" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 8C4 6.9 4.9 6 6 6H8L9.5 4H14.5L16 6H18C19.1 6 20 6.9 20 8V17C20 18.1 19.1 19 18 19H6C4.9 19 4 18.1 4 17V8Z" stroke="#5a5a5a" stroke-width="1.5"/>
+              <circle cx="12" cy="12.5" r="3.5" stroke="#5a5a5a" stroke-width="1.5"/>
+            </svg>
+            <p>Activa la cámara o sube una imagen de prueba</p>
+          </div>
+
+          <!-- Esquinas del marco de escaneo -->
+          <span class="corner corner--tl"></span>
+          <span class="corner corner--tr"></span>
+          <span class="corner corner--bl"></span>
+          <span class="corner corner--br"></span>
+
+          <!-- Línea de escaneo animada -->
+          <div class="scan-line" id="scanLine" hidden></div>
+        </div>
+
+        <div class="camera-controls">
+          <button type="button" class="btn btn--ghost" id="switchCameraBtn" title="Cambiar cámara" aria-label="Cambiar entre cámara frontal y trasera">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17 2L21 6L17 10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 12V10C3 7.8 4.8 6 7 6H21" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7 22L3 18L7 14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 12V14C21 16.2 19.2 18 17 18H3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <button type="button" class="btn btn--shutter" id="scanBtn" aria-label="Escanear producto">
+            <span class="btn--shutter__ring"></span>
+          </button>
+
+          <label class="btn btn--ghost" for="uploadInput" title="Subir imagen de prueba" aria-label="Subir imagen">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 16V4M12 4L7 9M12 4L17 9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4 15V17C4 18.7 5.3 20 7 20H17C18.7 20 20 18.7 20 17V15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <input type="file" id="uploadInput" accept="image/*" hidden>
+          </label>
+        </div>
+
+        <button type="button" class="btn btn--primary btn--full" id="cameraToggleBtn">
+          Activar cámara
+        </button>
+      </section>
+
+      <!-- ===== TARJETA DE RESULTADOS ===== -->
+      <section class="result-card" id="resultCard" aria-live="polite">
+
+        <div class="result-card__empty" id="resultEmpty">
+          <p>Escanea un producto para ver los resultados</p>
+        </div>
+
+        <div class="result-card__content" id="resultContent" hidden>
+
+          <div class="result-card__top">
+            <span class="category-tag" id="categoryTag">FRUTA FRESCA</span>
+            <div class="confidence" id="confidenceWrap">
+              <span class="confidence__value" id="confidenceValue">98</span><span class="confidence__percent">%</span>
+              <span class="confidence__label">Confianza</span>
+            </div>
+          </div>
+
+          <h2 class="result-card__name" id="productName">Tomate</h2>
+          <p class="result-card__variety" id="productVariety">Variedad: Saladette / Roma</p>
+
+          <div class="plu-box">
+            <span class="plu-box__label">Código PLU</span>
+            <span class="plu-box__code" id="pluCode">4087</span>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>ScanFresh · Punto de venta</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
